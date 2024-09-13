@@ -37,7 +37,7 @@ convert_wsl_to_windows() {
     local wsl_path="$1"
     local distro=$(get_wsl_distro)
     # Replace /home/ with \\wsl.localhost\<distro>\home\
-    local win_path=$(echo "$wsl_path" | sed -E "s|^/home/|\\\\wsl.localhost\\\\${distro}\\\\home\\\\|; s|/|\\\\|g")
+    local win_path=$(echo "$wsl_path" | sed -E "s|^/home/|\\\\\\\\wsl.localhost\\\\${distro}\\\\home\\\\|; s|/|\\\\|g")
     echo "$win_path"
 }
 
