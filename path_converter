@@ -7,6 +7,7 @@
 #   - To convert a Windows path to a Linux path: path_converter -w "C:\Users\mahi\Downloads"
 #   - To convert a Linux path to a Windows path: path_converter -l "/mnt/c/Users/mahi/Downloads"
 #   - To convert a WSL Linux path to a Windows path: path_converter -u "/home/mahi/any/folder"
+#   - To convert a Windows path in WSL format to a Linux path: path_converter -r "\\wsl.localhost\Ubuntu-24.04\home\mahi\any\folder"
 #   - To display the help message: path_converter -h
 
 # Function to convert Windows path to Linux path
@@ -41,6 +42,15 @@ convert_wsl_to_windows() {
     echo "$win_path"
 }
 
+# Function to convert Windows path in WSL format to Linux path
+convert_windows_wsl_to_linux() {
+    local win_wsl_path="$1"
+    local distro=$(get_wsl_distro)
+    # Replace \\wsl.localhost\<distro>\ with / and convert backslashes to forward slashes
+    local linux_path=$(echo "$win_wsl_path" | sed -E "s|\\\\\\\\wsl.localhost\\\\${distro}\\\\|/|; s|\\\\|/|g")
+    echo "$linux_path"
+}
+
 # Function to display help message
 display_help() {
     echo "Usage: path_converter [OPTION] PATH"
@@ -50,6 +60,7 @@ display_help() {
     echo "  -w, --windows   Convert Windows path to Linux path"
     echo "  -l, --linux     Convert Linux path to Windows path"
     echo "  -u, --wsl       Convert WSL Linux path to Windows path"
+    echo "  -r, --reverse   Convert Windows path in WSL format to Linux path"
     echo "  -h, --help      Display this help message"
 }
 
@@ -71,6 +82,10 @@ case "$1" in
     -u|--wsl)
         # Convert WSL Linux path to Windows path
         convert_wsl_to_windows "$2"
+        ;;
+    -r|--reverse)
+        # Convert Windows path in WSL format to Linux path
+        convert_windows_wsl_to_linux "$2"
         ;;
     -h|--help)
         # Display help message
