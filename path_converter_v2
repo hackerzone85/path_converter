@@ -1,0 +1,180 @@
+#!/bin/bash
+
+# Path Converter Script
+# Author: Mahendra Gaur
+# Version: 2
+# Description: This script converts Windows paths to Linux paths and vice versa for users working on WSL (Windows Subsystem for Linux).
+# Usage:
+#   - To convert a Windows path to a Linux path: path_converter -w "C:\Users\mahi6\Downloads"
+#   - To convert a Linux path to a Windows path: path_converter -l "/mnt/c/Users/mahi6/Downloads"
+#   - To convert a WSL Linux path to a Windows path: path_converter -u "/home/hacker/Uni-GBSA/2fvy_topol"
+#   - To convert a Windows path in WSL format to a Linux path: path_converter -r "\\wsl.localhost\Ubuntu-24.04\home\hacker\Uni-GBSA\2fvy_topol"
+#   - To display the help message: path_converter -h
+#   - To run in interactive mode: path_converter -i
+
+# Function to log messages
+log_message() {
+    local message="$1"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $message" >> path_converter.log
+}
+
+# Function to validate Windows path
+validate_windows_path() {
+    local path="$1"
+    if [[ ! "$path" =~ ^[A-Z]:\\.* ]]; then
+        echo "Invalid Windows path: $path"
+        exit 1
+    fi
+}
+
+# Function to validate Linux path
+validate_linux_path() {
+    local path="$1"
+    if [[ ! "$path" =~ ^/mnt/[a-z]/.* ]]; then
+        echo "Invalid Linux path: $path"
+        exit 1
+    fi
+}
+
+# Function to validate WSL path
+validate_wsl_path() {
+    local path="$1"
+    if [[ ! "$path" =~ ^/.* ]]; then
+        echo "Invalid WSL path: $path"
+        exit 1
+    fi
+}
+
+# Function to convert Windows path to Linux path
+convert_windows_to_linux() {
+    local win_path="$1"
+    # Replace backslashes with forward slashes and prepend /mnt/
+    local linux_path=$(echo "$win_path" | sed -E 's|\\|/|g; s|^([A-Z]):|/mnt/\L\1|')
+    echo "$linux_path"
+}
+
+# Function to convert Linux path to Windows path
+convert_linux_to_windows() {
+    local linux_path="$1"
+    # Replace /mnt/ with drive letter and convert forward slashes to backslashes
+    local win_path=$(echo "$linux_path" | sed -E 's|^/mnt/([a-z])|\U\1:|; s|/|\\|g')
+    echo "$win_path"
+}
+
+# Function to get WSL distribution name
+get_wsl_distro() {
+    local distro_name=$(lsb_release -si)
+    local distro_version=$(lsb_release -sr)
+    echo "${distro_name}-${distro_version}"
+}
+
+# Function to convert WSL Linux path to Windows path
+convert_wsl_to_windows() {
+    local wsl_path="$1"
+    local distro=$(get_wsl_distro)
+    # Replace the root path with \\wsl.localhost\<distro>\
+    local win_path=$(echo "$wsl_path" | sed -E "s|^/|\\\\\\\\wsl.localhost\\\\${distro}\\\\|; s|/|\\\\|g")
+    echo "$win_path"
+}
+
+# Function to convert Windows path in WSL format to Linux path
+convert_windows_wsl_to_linux() {
+    local win_wsl_path="$1"
+    local distro=$(get_wsl_distro)
+    # Replace \\wsl.localhost\<distro>\ with / and convert backslashes to forward slashes
+    local linux_path=$(echo "$win_wsl_path" | sed -E "s|\\\\\\\\wsl.localhost\\\\${distro}\\\\|/|; s|\\\\|/|g")
+    echo "$linux_path"
+}
+
+# Function for interactive mode
+interactive_mode() {
+    echo "Enter the option (-w, -l, -u, -r): "
+    read option
+    echo "Enter the path: "
+    read path
+
+    case "$option" in
+        -w|--windows)
+            validate_windows_path "$path"
+            log_message "Converting path: $path with option: $option"
+            convert_windows_to_linux "$path"
+            ;;
+        -l|--linux)
+            validate_linux_path "$path"
+            log_message "Converting path: $path with option: $option"
+            convert_linux_to_windows "$path"
+            ;;
+        -u|--wsl)
+            validate_wsl_path "$path"
+            log_message "Converting path: $path with option: $option"
+            convert_wsl_to_windows "$path"
+            ;;
+        -r|--reverse)
+            validate_wsl_path "$path"
+            log_message "Converting path: $path with option: $option"
+            convert_windows_wsl_to_linux "$path"
+            ;;
+        *)
+            echo "Invalid option: $option"
+            ;;
+    esac
+}
+
+# Function to display help message
+display_help() {
+    echo "Usage: path_converter [OPTION] PATH"
+    echo "Convert Windows path to Linux path and vice versa."
+    echo
+    echo "Options:"
+    echo "  -w, --windows       Convert Windows path to Linux path"
+    echo "  -l, --linux         Convert Linux path to Windows path"
+    echo "  -u, --wsl           Convert WSL Linux path to Windows path"
+    echo "  -r, --reverse       Convert Windows path in WSL format to Linux path"
+    echo "  -i, --interactive    Run in interactive mode"
+    echo "  -h, --help          Display this help message"
+}
+
+# Main script
+if [[ $# -lt 2 ]]; then
+    if [[ "$1" == "-i" || "$1" == "--interactive" ]]; then
+        interactive_mode
+        exit 0
+    else
+        display_help
+        exit 1
+    fi
+fi
+
+case "$1" in
+    -w|--windows)
+        validate_windows_path "$2"
+        log_message "Converting path: $2 with option: $1"
+        convert_windows_to_linux "$2"
+        ;;
+    -l|--linux)
+        validate_linux_path "$2"
+        log_message "Converting path: $2 with option: $1"
+        convert_linux_to_windows "$2"
+        ;;
+    -u|--wsl)
+        validate_wsl_path "$2"
+        log_message "Converting path: $2 with option: $1"
+        convert_wsl_to_windows "$2"
+        ;;
+    -r|--reverse)
+        validate_wsl_path "$2"
+        log_message "Converting path: $2 with option: $1"
+        convert_windows_wsl_to_linux "$2"
+        ;;
+    -i|--interactive)
+        interactive_mode
+        ;;
+    -h|--help)
+        display_help
+        ;;
+    *)
+        echo "Invalid option: $1"
+        display_help
+        exit 1
+        ;;
+esac
