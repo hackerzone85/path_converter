@@ -40,6 +40,11 @@ _Directory Structure_
   ```bash
   path_converter -u "/home/mahi/any/path"
   ```
+
+- To convert a Windows path in WSL format to a Linux path:
+  ```bash
+  path_converter -r "\\wsl.localhost\Ubuntu-24.04\home\mahi\any\folder"
+  ```
   
 - To display the help message:
   ```bash
