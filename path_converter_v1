@@ -2,6 +2,7 @@
 
 # Path Converter Script
 # Author: Mahendra Gaur
+# Version: 1
 # Description: This script converts Windows paths to Linux paths and vice versa for users working on WSL (Windows Subsystem for Linux).
 # Usage:
 #   - To convert a Windows path to a Linux path: path_converter -w "C:\Users\mahi\Downloads"
