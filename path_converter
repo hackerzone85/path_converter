@@ -1,0 +1,63 @@
+#!/bin/bash
+
+# Path Converter Script
+# Author: Mahendra Gaur
+# Description: This script converts Windows paths to Linux paths and vice versa for users working on WSL (Windows Subsystem for Linux).
+# Usage:
+#   - To convert a Windows path to a Linux path: path_converter -w "C:\Users\mahi6\Downloads"
+#   - To convert a Linux path to a Windows path: path_converter -l "/mnt/c/Users/mahi6/Downloads"
+#   - To display the help message: path_converter -h
+
+# Function to convert Windows path to Linux path
+convert_windows_to_linux() {
+    local win_path="$1"
+    # Replace backslashes with forward slashes and prepend /mnt/
+    local linux_path=$(echo "$win_path" | sed -E 's|\\|/|g; s|^([A-Z]):|/mnt/\L\1|')
+    echo "$linux_path"
+}
+
+# Function to convert Linux path to Windows path
+convert_linux_to_windows() {
+    local linux_path="$1"
+    # Replace /mnt/ with drive letter and convert forward slashes to backslashes
+    local win_path=$(echo "$linux_path" | sed -E 's|^/mnt/([a-z])|\U\1:|; s|/|\\|g')
+    echo "$win_path"
+}
+
+# Function to display help message
+display_help() {
+    echo "Usage: path_converter [OPTION] PATH"
+    echo "Convert Windows path to Linux path and vice versa."
+    echo
+    echo "Options:"
+    echo "  -w, --windows   Convert Windows path to Linux path"
+    echo "  -l, --linux     Convert Linux path to Windows path"
+    echo "  -h, --help      Display this help message"
+}
+
+# Main script
+if [[ $# -lt 2 ]]; then
+    display_help
+    exit 1
+fi
+
+case "$1" in
+    -w|--windows)
+        # Convert Windows path to Linux path
+        convert_windows_to_linux "$2"
+        ;;
+    -l|--linux)
+        # Convert Linux path to Windows path
+        convert_linux_to_windows "$2"
+        ;;
+    -h|--help)
+        # Display help message
+        display_help
+        ;;
+    *)
+        # Handle invalid options
+        echo "Invalid option: $1"
+        display_help
+        exit 1
+        ;;
+esac
