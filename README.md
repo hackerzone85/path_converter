@@ -16,7 +16,7 @@ This script converts Windows paths to Linux paths and vice versa for users worki
   
 - To convert a WSL Linux path to a Windows path:
   ```bash
-  path_converter -u "/home/hacker/Uni-GBSA/2fvy_topol"
+  path_converter -u "/home/mahi/any/path"
   ```
   
 - To display the help message:
