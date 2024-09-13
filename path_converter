@@ -4,8 +4,9 @@
 # Author: Mahendra Gaur
 # Description: This script converts Windows paths to Linux paths and vice versa for users working on WSL (Windows Subsystem for Linux).
 # Usage:
-#   - To convert a Windows path to a Linux path: path_converter -w "C:\Users\mahi6\Downloads"
-#   - To convert a Linux path to a Windows path: path_converter -l "/mnt/c/Users/mahi6/Downloads"
+#   - To convert a Windows path to a Linux path: path_converter -w "C:\Users\mahi\Downloads"
+#   - To convert a Linux path to a Windows path: path_converter -l "/mnt/c/Users/mahi/Downloads"
+#   - To convert a WSL Linux path to a Windows path: path_converter -u "/home/mahi/any/folder"
 #   - To display the help message: path_converter -h
 
 # Function to convert Windows path to Linux path
@@ -24,6 +25,22 @@ convert_linux_to_windows() {
     echo "$win_path"
 }
 
+# Function to get WSL distribution name
+get_wsl_distro() {
+    local distro_name=$(lsb_release -si)
+    local distro_version=$(lsb_release -sr)
+    echo "${distro_name}-${distro_version}"
+}
+
+# Function to convert WSL Linux path to Windows path
+convert_wsl_to_windows() {
+    local wsl_path="$1"
+    local distro=$(get_wsl_distro)
+    # Replace /home/ with \\wsl.localhost\<distro>\home\
+    local win_path=$(echo "$wsl_path" | sed -E "s|^/home/|\\\\wsl.localhost\\\\${distro}\\\\home\\\\|; s|/|\\\\|g")
+    echo "$win_path"
+}
+
 # Function to display help message
 display_help() {
     echo "Usage: path_converter [OPTION] PATH"
@@ -32,6 +49,7 @@ display_help() {
     echo "Options:"
     echo "  -w, --windows   Convert Windows path to Linux path"
     echo "  -l, --linux     Convert Linux path to Windows path"
+    echo "  -u, --wsl       Convert WSL Linux path to Windows path"
     echo "  -h, --help      Display this help message"
 }
 
@@ -49,6 +67,10 @@ case "$1" in
     -l|--linux)
         # Convert Linux path to Windows path
         convert_linux_to_windows "$2"
+        ;;
+    -u|--wsl)
+        # Convert WSL Linux path to Windows path
+        convert_wsl_to_windows "$2"
         ;;
     -h|--help)
         # Display help message
